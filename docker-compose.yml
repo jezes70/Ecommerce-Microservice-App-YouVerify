@@ -1,0 +1,95 @@
+version: "3.7"
+services:
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx #
+    ports:
+      - "3050:80"
+  customers:
+    container_name: customer_service
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./customer-service
+    volumes:
+      - ./customer-service:/app
+
+    links:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - JWT_KEY=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
+  products:
+    container_name: product_service
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./product-service
+    volumes:
+      - ./product-service:/app
+    links:
+      - mongo
+      - orders
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - JWT_KEY=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
+      - RabbitMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - ORDER_URL=http://orders:5000
+  orders:
+    container_name: orders_service
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./order-service
+    volumes:
+      - ./order-service:/app
+
+    links:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - JWT_KEY=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
+      - RabbitMQ_URI=amqp://guest:guest@rabbitmq:5672
+  payments:
+    container_name: payments_service
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./payment-service
+    volumes:
+      - ./payment-service:/app
+    links:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - JWT_KEY=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
+      - RabbitMQ_URI=amqp://guest:guest@rabbitmq:5672
+  worker:
+    container_name: worker
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./worker
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+    links:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - JWT_KEY=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
+      - RabbitMQ_URI=amqp://guest:guest@rabbitmq:5672
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: always
+  mongo:
+    image: mongo
+    volumes:
+      - ./db:/data/db
+    ports:
+      - "27017:27017"

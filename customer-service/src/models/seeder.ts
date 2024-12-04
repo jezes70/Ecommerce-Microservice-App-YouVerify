@@ -2,12 +2,12 @@ import User from "./user";
 
 const users = [
   {
-    email: "johndoe@testing.com",
-    password: "p@ssw0rd",
+    email: "qeenzymorriz@mail.com",
+    password: "passwords",
   },
   {
-    email: "admin@testing.com",
-    password: "p@ssw0rd",
+    email: "admin@mail.com",
+    password: "password",
   },
 ];
 
